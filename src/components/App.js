@@ -1,93 +1,74 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { LoadMoreBtn } from './Button/Button';
-import { fetchImages, normalizedImg } from './services/api';
+import { fetchData, normalizedImg } from './services/api';
 import { Loader } from './Loader/Loader';
 import { MainContainer } from './App.styled';
 
-export class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    page: 1,
-    error: null,
-    isLoading: false,
-    totalPages: 0,
-  };
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(0);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
-      this.fetchImages();
+  useEffect(() => {
+    if (query === '') {
+      return;
     }
-  }
 
-  handleLoadMore = () => {
-    this.setState(
-      prevState => ({
-        page: prevState.page + 1,
-      }),
-      // () => {
-      //   console.log('Page incremented:', this.state.page);
-      // }
-    );
-  };
+    const fetchImages = async () => {
+      const perPage = 12;
+      try {
+        setIsLoading(true);
+        const data = await fetchData(query, page);
 
-  handleSubmit = category => {
-    this.setState({
-      query: category,
-      page: 1,
-      images: [],
-      error: null,
-    });
-  };
+        if (data.hits.length === 0) {
+          toast.info('Images not found...', {
+            position: toast.POSITION.TOP_CENTER,
+          });
+                 }
 
-  fetchImages = async () => {
-    const { query, page } = this.state;
-    const perPage = 12;
-    try {
-      this.setState({ isLoading: true });
-      const data = await fetchImages(query, page);
+        const normalizedImgs = normalizedImg(data.hits);
 
-      if (data.hits.length === 0) {
-        return toast.info('Images not found...', {
-          position: toast.POSITION.TOP_CENTER,
-        });
+        setImages(prevImages => [...prevImages, ...normalizedImgs]);
+        setIsLoading(false);
+        setTotalPages(Math.ceil(data.totalHits / perPage));
+        setError(null);
+      } catch (error) {
+        setError('Oops! Something went wrong!');
+      } finally {
+        setIsLoading(false);
       }
+    };
+    fetchImages();
+  }, [query, page]);
 
-      const normalizedImgs = normalizedImg(data.hits);
-
-      this.setState(state => ({
-        images: [...state.images, ...normalizedImgs],
-        totalPages: Math.ceil(data.totalHits / perPage),
-        error: null,
-      }));
-    } catch (error) {
-      this.setState({ error: 'Oops! Something went wrong!' });
-    } finally {
-      this.setState({ isLoading: false });
-    }
+  const handleLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-    render() {
-    const { images, isLoading, error, page, totalPages } = this.state;
+  const handleSubmit = category => {
+    setQuery(category);
+    setPage(1);
+    setImages([]);
+    setError(null);
+  };
 
-    return (
-      <MainContainer>
-        <Searchbar onSubmit={this.handleSubmit} />
-        {images.length > 0 && <ImageGallery images={images} />}
-        {isLoading && <Loader />}
-        {error && <p>{error.message}</p>}
-        {images.length > 0 && totalPages !== page && !isLoading && (
-          <LoadMoreBtn onClick={this.handleLoadMore} />
-        )}
-      </MainContainer>
-    );
-  }
-}
+  return (
+    <MainContainer>
+      <Searchbar onSubmit={handleSubmit} />
+      {images.length > 0 && <ImageGallery images={images} />}
+      {isLoading && <Loader />}
+      {error && <p>{error}</p>}
+      {images.length > 0 && totalPages !== page && !isLoading && (
+        <LoadMoreBtn onClick={handleLoadMore} />
+      )}
+    </MainContainer>
+  );
+};

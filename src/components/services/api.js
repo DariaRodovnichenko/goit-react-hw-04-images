@@ -4,7 +4,7 @@ axios.defaults.baseURL = 'https://pixabay.com/api/';
 
 const API_KEY = '38424030-1fa37e2b99732f8958e5ecc88';
 
-export const fetchImages = async (query, page) => {
+export const fetchData = async (query, page) => {
   const resp = await axios.get('/', {
     params: {
       key: API_KEY,

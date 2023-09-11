@@ -1,52 +1,52 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { SearchForm, SearchFormBtn, SearchFormInput, SearchFormLabel, SearchbarWrapper } from './Searchbar.styled';
+import {
+  SearchForm,
+  SearchFormBtn,
+  SearchFormInput,
+  SearchFormLabel,
+  SearchbarWrapper,
+} from './Searchbar.styled';
 
+export const Searchbar = props => {
+  const [inputValue, setInputValue] = useState('');
 
-export class Searchbar extends Component {
-  state = {
-    inputValue: '',
+  const handleInputChange = evt => {
+    setInputValue(evt.target.value);
   };
 
-  handleInputChange = evt => {
-    this.setState({ inputValue: evt.target.value });
-  };
-
-  handleSubmit = evt => {
+  const handleSubmit = evt => {
     evt.preventDefault();
-    const { inputValue } = this.state;
 
     if (!inputValue.trim()) {
       toast.info('Please enter a search query.');
       return;
     }
 
-    if (inputValue === this.props.searchQuery) {
+    if (inputValue === props.searchQuery) {
       toast.info(`"${inputValue}" search already completed.`);
       return;
     }
 
-    this.props.onSubmit(inputValue);
-    this.setState({ inputValue: '' });
+    props.onSubmit(inputValue);
+    setInputValue('');
   };
 
-  render() {
-    return (
-      <SearchbarWrapper>
-        <SearchForm onSubmit={this.handleSubmit}>
-          <SearchFormBtn type="submit">
-            <SearchFormLabel>Search</SearchFormLabel>
-          </SearchFormBtn>
-          <SearchFormInput
-            type="text"
-            autoComplete="off"
-            autoFocus
-            value={this.state.inputValue}
-            onChange={this.handleInputChange}
-            placeholder="Search for images..."
-          />
-        </SearchForm>
-      </SearchbarWrapper>
-    );
-  }
-}
+  return (
+    <SearchbarWrapper>
+      <SearchForm onSubmit={handleSubmit}>
+        <SearchFormBtn type="submit">
+          <SearchFormLabel>Search</SearchFormLabel>
+        </SearchFormBtn>
+        <SearchFormInput
+          type="text"
+          autoComplete="off"
+          autoFocus
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="Search for images..."
+        />
+      </SearchForm>
+    </SearchbarWrapper>
+  );
+};
