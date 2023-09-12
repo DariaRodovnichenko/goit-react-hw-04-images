@@ -32,7 +32,7 @@ export const App = () => {
           toast.info('Images not found...', {
             position: toast.POSITION.TOP_CENTER,
           });
-                 }
+        }
 
         const normalizedImgs = normalizedImg(data.hits);
 
@@ -64,8 +64,8 @@ export const App = () => {
     <MainContainer>
       <Searchbar onSubmit={handleSubmit} />
       {images.length > 0 && <ImageGallery images={images} />}
-      {isLoading && <Loader />}
       {error && <p>{error}</p>}
+      {isLoading && <Loader />}
       {images.length > 0 && totalPages !== page && !isLoading && (
         <LoadMoreBtn onClick={handleLoadMore} />
       )}
